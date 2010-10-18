@@ -37,41 +37,24 @@ Class BeastxPlugin {
     private $optionsHelpers = array();
     
     public function __construct() {
-        global $wpdb;
         $this->pluginBaseName = str_replace(' ', '-', $this->pluginName);
         $this->actualPage = $this->getActualPluginPage();
 
         register_activation_hook($this->pluginBaseFileName, array($this, '_onPluginActivate'));
         register_deactivation_hook($this->pluginBaseFileName, array($this, '_onPluginDeactivate'));
         
-        $this->addAction('init', '_onWordpressInit');
+        $this->addAction('init', '_onInit');
         $this->addAction('admin_init', '_onAdminInit');
         $this->addAction('plugins_loaded', '_onPluginLoad');
     }
     
-    private function getActualPluginPage() {
-        if (!empty($_GET['page'])) {
-            if (preg_match("/" . $this->pluginBaseName . "/i", $_GET['page']) != false) {
-                return str_replace($this->pluginBaseName . '-', '', $_GET['page']);
-            } else if(preg_match("/" . str_replace('/', '\/', $this->pluginBaseFileName) . "/i", $_GET['page']) != false) {
-                return 'mainPage';
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
+    /*****************************************************
+    Events Handlers
+    *****************************************************/
     
-    public function _onAdminInit() {
-        if (method_exists($this, 'onAdminInit')) {
-            $this->onAdminInit();
-        }
-    }
-    
-    public function _onWordpressInit() {
-        if (method_exists($this, 'onWordpressInit')) {
-            $this->onWordpressInit();
+    function _onInit() {
+        if (method_exists($this, 'onInit')) {
+            $this->onInit();
         }
         if (method_exists($this, 'addScripts')) {
             add_action('admin_print_scripts', array(&$this, 'addScripts'));
@@ -81,9 +64,63 @@ Class BeastxPlugin {
         }
     }
     
+    function _onAdminInit() {
+        if (method_exists($this, 'onAdminInit')) {
+            $this->onAdminInit();
+        }
+    }
+    
+    function _onPluginLoad() {
+        if (method_exists($this, 'onPluginLoad')) {
+            $this->onPluginLoad();
+        }
+        if (!empty($this->adminMenuOptions)) {
+            $this->addAction('admin_menu', 'addAdminMenu');
+        }
+        if (!empty($this->actionsLinks)) {
+            $this->addPluginActionLink();
+        }
+        if (!empty($this->metaLinks)) {
+            $this->addPluginMetaLink();
+        }
+        $this->readOptions();
+    }
+    
+    function _onPluginActivate() {
+        if (method_exists($this, 'onPluginActivate')) {
+            $this->onPluginActivate();
+        }
+    }
+    
+    function _onPluginDeactivate() {
+        if (method_exists($this, 'onPluginDeactivate')) {
+            $this->onPluginDeactivate();
+        }
+    }
+    
+    /*****************************************************
+    Events Handlers
+    *****************************************************/
+    
+    public function addAction($action, $methodName, $priority = 10, $parameters = 2) {
+        add_action($action, array(&$this, $methodName), $priority, $parameters);
+    }
+    
+    public function addFilter($action, $methodName, $priority = 10, $parameters = 2) {
+        add_filter($action, array(&$this, $methodName), $priority, $parameters);
+    }
+    
+    
+
     public function addPluginActionLink() {
         $this->addFilter('plugin_action_links_' . $this->pluginBaseFileName, '_addPluginActionLink');
     }
+    
+    public function addPluginMetaLink() {
+        $this->addFilter('plugin_row_meta', '_addPluginMetaLink');
+    }
+    
+    
     
     function _addPluginActionLink($links) {
         $newLinks = array();
@@ -94,9 +131,7 @@ Class BeastxPlugin {
         return array_merge($newLinks, $links);
     }  
     
-    public function addPluginMetaLink() {
-        $this->addFilter('plugin_row_meta', '_addPluginMetaLink');
-    }
+    
     
     function _addPluginMetaLink($links, $file) {
         if ($file == $this->pluginBaseFileName) {
@@ -108,83 +143,7 @@ Class BeastxPlugin {
         return $links;
     }
     
-    public function addAction($action, $method) {
-        add_action($action, array(&$this, $method), 10, 1);
-    }
-    
-    public function addFilter($action, $method) {
-        add_filter($action, array(&$this, $method), 10, 2);
-    }
-    
-    public function _onPluginActivate() {
-        $stopDefaultAction = false;
-        if (method_exists($this, 'onPluginActivate')) {
-            $this->onPluginActivate();
-        }
-        $this->createSqlTables();
-        $this->registerDefaultOptions();
-        
-        if (!empty($this->folders)) {
-            $this->createPluginFolders();
-        }
-        if (method_exists($this, 'onAfterPluginActivate')) {
-            $this->onAfterPluginActivate();
-        }
-    }
-    
-    public function _onPluginDeactivate() {
-        $stopDefaultAction = false;
-        if (method_exists($this, 'onPluginDeactivate')) {
-            $stopDefaultAction = $this->onPluginDeactivate();
-        }
-        if (!$stopDefaultAction) {
-            if (!empty($this->dbSchema)) {
-                //~ $this->deleteSqlTables();
-            }
-        }
-    }
-    
-    public function createSqlTables() {
-        global $wpdb;
-        require_once $this->pluginBasePath . '/dbSchema.php';
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        for ($i = 0; $i < count($BeastxWPProjectsDBSchema); ++$i) {
-            $sql = "CREATE TABLE IF NOT EXISTS ";
-            $sql.= $wpdb->prefix . str_replace('-', '', $this->pluginBaseName) . "_" . $BeastxWPProjectsDBSchema[$i]['tableName'];
-            $sql.= " ( " . $BeastxWPProjectsDBSchema[$i]['schema'] . " )";
-            dbDelta($sql);
-        }
-    }
-    
-    public function deleteSqlTables() {
-        global $wpdb;
-        require_once $this->pluginBasePath . '/dbSchema.php';
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        for ($i = 0; $i < count($BeastxWPProjectsDBSchema); ++$i) {
-            $sql = "DROP TABLE IF EXISTS ";
-            $sql.= $wpdb->prefix . str_replace('-', '', $this->pluginBaseName) . "_" . $BeastxWPProjectsDBSchema[$i]['tableName'];
-            $wpdb->query($sql);
-        }
-    }
-    
-    public function _onPluginLoad() {
-        $stopDefaultAction = false;
-        if (method_exists($this, 'onPluginLoad')) {
-            $stopDefaultAction = $this->onPluginLoad();
-        }
-        if (!$stopDefaultAction) {
-            if (!empty($this->adminMenuOptions)) {
-                $this->addAction('admin_menu', 'addAdminMenu');
-            }
-            if (!empty($this->actionsLinks)) {
-                $this->addPluginActionLink();
-            }
-            if (!empty($this->metaLinks)) {
-                $this->addPluginMetaLink();
-            }
-            $this->readOptions();
-        }
-    }
+
     
     public function addAdminMenu() {
         add_submenu_page(
@@ -217,8 +176,93 @@ Class BeastxPlugin {
         }
     }
     
+    private function getActualPluginPage() {
+        if (!empty($_GET['page'])) {
+            if (preg_match("/" . $this->pluginBaseName . "/i", $_GET['page']) != false) {
+                return str_replace($this->pluginBaseName . '-', '', $_GET['page']);
+            } else if(preg_match("/" . str_replace('/', '\/', $this->pluginBaseFileName) . "/i", $_GET['page']) != false) {
+                return 'mainPage';
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /*****************************************************
+    MySql helpers
+    *****************************************************/    
+    
+    
+    public function createSqlTables() {
+        global $wpdb;
+        require_once $this->pluginBasePath . '/dbSchema.php';
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        for ($i = 0; $i < count($BeastxWPProjectsDBSchema); ++$i) {
+            $sql = "CREATE TABLE IF NOT EXISTS ";
+            $sql.= $wpdb->prefix . str_replace('-', '', $this->pluginBaseName) . "_" . $BeastxWPProjectsDBSchema[$i]['tableName'];
+            $sql.= " ( " . $BeastxWPProjectsDBSchema[$i]['schema'] . " )";
+            dbDelta($sql);
+        }
+    }
+    
+    public function deleteSqlTables() {
+        global $wpdb;
+        require_once $this->pluginBasePath . '/dbSchema.php';
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        for ($i = 0; $i < count($BeastxWPProjectsDBSchema); ++$i) {
+            $sql = "DROP TABLE IF EXISTS ";
+            $sql.= $wpdb->prefix . str_replace('-', '', $this->pluginBaseName) . "_" . $BeastxWPProjectsDBSchema[$i]['tableName'];
+            $wpdb->query($sql);
+        }
+    }
+    
+    
+    /*****************************************************
+    Folders helpers
+    *****************************************************/
+    
+    
+    public function createPluginFolders() {
+        foreach ($this->folders as $folderId => $folder) {
+                $this->mkdirr($folder);
+            }
+        }
+    
+    public function mkdirr($pathname) { // Path absoluto desde el folder content del wordpress..
+        $pathname = WP_CONTENT_DIR . $pathname;
+        $this->_mkdirr($pathname, 0777);
+    }
+    
+    private function _mkdirr($pathname, $mode) {
+        if (is_dir($pathname) || empty($pathname)) { return true; } // Check if directory already exists
+        if (is_file($pathname)) { return false; } // Ensure a file does not already exist with the same name
+        $next_pathname = substr($pathname, 0, strrpos($pathname, DIRECTORY_SEPARATOR));
+        if ($this->_mkdirr($next_pathname, $mode)) {
+            if (!file_exists($pathname)) {
+                $rtn = mkdir($pathname, $mode);
+                return $rtn;
+            }
+        }
+        return false;
+    }
+    
+    
+    /*****************************************************
+    Plugin Options Helpers
+    *****************************************************/
+
     
     public function registerDefaultOptions() {
         $oldOptions = get_option($this->pluginBaseName . '_options');
@@ -301,30 +345,6 @@ Class BeastxPlugin {
             'getter' => $getter,
             'defaultValue' => $defaultValue
         );
-    }
-    
-    public function createPluginFolders() {
-        foreach ($this->folders as $folderId => $folder) {
-                $this->mkdirr($folder);
-            }
-        }
-    
-    public function mkdirr($pathname) { // Path absoluto desde el folder content del wordpress..
-        $pathname = WP_CONTENT_DIR . $pathname;
-        $this->_mkdirr($pathname, 0777);
-    }
-    
-    private function _mkdirr($pathname, $mode) {
-        if (is_dir($pathname) || empty($pathname)) { return true; } // Check if directory already exists
-        if (is_file($pathname)) { return false; } // Ensure a file does not already exist with the same name
-        $next_pathname = substr($pathname, 0, strrpos($pathname, DIRECTORY_SEPARATOR));
-        if ($this->_mkdirr($next_pathname, $mode)) {
-            if (!file_exists($pathname)) {
-                $rtn = mkdir($pathname, $mode);
-                return $rtn;
-            }
-        }
-        return false;
     }
     
 }
