@@ -1,4 +1,7 @@
 <?
+
+if (!defined('ABSPATH')) die("Aren't you supposed to come here via WP-Admin?");
+
 require_once 'thirdParty/firePHP/FirePHP.class.php';
 require_once 'class.BeastxInputs.php';
 require_once 'class.BeastxFileSystemHelper.php';
