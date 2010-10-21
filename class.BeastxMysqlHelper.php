@@ -34,7 +34,11 @@ class BeastxMysqlHelper {
     }
     
     public function newCreateTable($tableName) {
-        return new BeastxSQLCreate($this->tableNamePrefix . $tableName);
+        return new BeastxSQLCreateTable($this->tableNamePrefix . $tableName);
+    }
+    
+    public function newDeleteTable($tableName) {
+        return new BeastxSQLDeleteTable($this->tableNamePrefix . $tableName);
     }
     
     public function query($sqlObject) {
