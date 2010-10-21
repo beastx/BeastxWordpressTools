@@ -89,12 +89,12 @@ class BeastxMysqlHelper {
         }
     }
     
-    function escape($text) {
+    public function escape($text) {
         $text = strtr($text, array('\\' => '\\\\', '\'' => '\\\'', '"' => '\\"',));
         return $text;
     }
 
-    function escapeLike($text) {
+    public function escapeLike($text) {
         $text = strtr($text, array('\\' => '\\\\', '\'' => '\\\'', '"' => '\\"', '%' => '\\%', '_' => '\\_',));
         return $text;
     }
