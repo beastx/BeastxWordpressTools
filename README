@@ -1,0 +1,101 @@
+=== Beastx Wordpress Tools ===
+
+== Mysql Helper ==
+    - Class fileName: class.BeastxMysqlHelper.php
+    - Public methods:
+        - newSelect($tableName)
+        - newInsert($tableName)
+        - newUpdate($tableName)
+        - newReplace($tableName)
+        - newDelete($tableName)
+        - newCreateTable($tableName)
+        - query($sqlObject)
+        - getOne($sqlObject)
+        - getAll($sqlObject)
+        - createSqlTables()
+        - deleteSqlTables()
+        - getLiteral($value)
+        - escape($text)
+        - escapeLike($text)
+
+== FileSystem Helper ==
+    - Class fileName: class.BeastxFileSystemHelper.php
+    - Public methods:
+        - getFileContent($fileName)
+        - getFileInfo($fileName)
+        - moveFile($sourceFileName, $destFileName)
+        - copyFile($sourceFileName, $destFileName)
+        - deleteFile($fileName)
+        - createFile($fileName, $mode = 0777)
+        - writeToFile($fileName, $content, $append = true, $createIfNotExists = true)
+        - deleteFolder($folderName, $forceIsNotEmpty = true)
+        - createFolder($folderName, $mode = 0777)
+
+== Options Helper ==
+    - Class fileName: class.BeastxOptionsManager.php
+    - Public methods:
+
+== BeastxSQLInsert ==
+    - Class fileName: class.BeastxOptionsManager.php
+    - Public methods:
+        - set($field, $value, $trimValue = true)
+        - setUnquoted($field, $value)
+        - get()
+
+== BeastxSQLReplace ==
+    - Class fileName: class.BeastxOptionsManager.php
+    - Public methods:
+        - set($field, $value, $trimValue = true)
+        - get()
+
+== BeastxSQLDelete ==
+    - Class fileName: class.BeastxOptionsManager.php
+    - Public methods:
+        - __construct($table)
+        - addWhere($condition)
+        - addWhereFieldEquals($field, $value)
+        - get()
+
+== BeastxSQLSelect ==
+    - Class fileName: class.BeastxOptionsManager.php
+    - Public methods:
+        - getTableAlias()
+        - addField($field)
+        - setDistinct($value)
+        - setCalcFoundRows($value)
+        - addFields($fields, $table = false)
+        - addTable($table, $as = false)
+        - addLeftJoin($table, $on = false, $as = false)
+        - addJoin($table, $on = false, $as = false)
+        - addWhereFieldIsInArray($field, $array)
+        - addWhereFieldIsNotInArray($field, $array)
+        - addWhereFieldEquals($field, $value)
+        - addWhereFieldNotEquals($field, $value)
+        - addWhereAllWordsPresentInFields($string, $fieldsToSearch)
+        - addWhere($string)
+        - addGroupBy($string)
+        - addOrder($string)
+        - addLimit($start, $count)
+        - get()
+        - getCount()
+
+== BeastxSQLUpdate ==
+    - Class fileName: class.BeastxOptionsManager.php
+    - Public methods:
+        - set($field, $value, $trimValue = true)
+        - setUnquoted($field, $value)
+        - addWhere($condition)
+        - addWhereFieldEquals($field, $value)
+        - get()
+
+== BeastxSQLCreateTable ==
+    - Class fileName: class.BeastxOptionsManager.php
+    - Public methods:
+        - add($field, $type)
+        - setPrimaryKeys($fields)
+        - get()
+
+== BeastxSQLDeleteTable ==
+    - Class fileName: class.BeastxOptionsManager.php
+    - Public methods:
+        - get()
