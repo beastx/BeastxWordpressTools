@@ -31,9 +31,20 @@
         - deleteFolder($folderName, $forceIsNotEmpty = true)
         - createFolder($folderName, $mode = 0777)
 
-== Options Helper ==
+== Options Manager ==
     - Class fileName: class.BeastxOptionsManager.php
     - Public methods:
+        - addNewOption($optionName, $optionLabel = null, $optionDescription = null, $optionDefaultValue = null, $optionValidators = array(), $customSetter = null, $customGetter = null)
+        - registerInitialOptions()
+        - updateOptions()
+        - resetOptions()
+        - get($optionName)
+        - isValid($optionName, $optionValue, $validator)
+        - validateOption($optionName, $optionValue)
+        - set($optionName, $optionValue, $validate = true)
+        - getLastValidationError()
+        - registerOptionHelper($optionName, $setter, $getter)
+        - readOptions()
 
 == BeastxSQLInsert ==
     - Class fileName: class.BeastxOptionsManager.php
