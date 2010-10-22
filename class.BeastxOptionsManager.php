@@ -8,7 +8,7 @@ class BeastxOptionsManager {
     private $lastValidationError;
     private $optionHelpers = array();
 
-    public __construct($pluginName) {
+    public function __construct($pluginName) {
         $this->pluginName = $pluginName;
     }
 
@@ -104,7 +104,7 @@ class BeastxOptionsManager {
     
     public function readOptions() {
         $this->options = json_decode(get_option($this->pluginName . '_options'), true);
-        $this->optionHelpers
+        //~ $this->optionHelpers
     }
     
     private function executeCutomSetter($optionName, $value) {
