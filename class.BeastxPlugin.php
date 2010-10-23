@@ -27,6 +27,12 @@ Author URI: http://www.beastxblog.com/
 
 Class BeastxPlugin {
 
+    private $favoriteMenuActionsToAdd = array();
+    private $favoriteMenuActionsToRemove = array();
+    private $styles = array();
+    private $scripts = array();
+    private $dashboardWidgets = array();
+
     public function __construct() {
         $this->pluginBaseName = str_replace(' ', '-', $this->pluginName);
         $this->addWordpressCommonFiltersAndActions();
@@ -46,6 +52,8 @@ Class BeastxPlugin {
         $this->addFilter('plugin_action_links_' . $this->pluginBaseFileName, '_addPluginActionLink');
         $this->addFilter('plugin_row_meta', '_addPluginMetaLink');
         $this->addAction('admin_menu', '_addMenuItems');
+        $this->addFilter('favorite_actions', '_addCustomFavoriteOption');
+        $this->addAction('wp_dashboard_setup', '_addDashboardWidget');
         
         //~ $this->addFilter('manage_edit-' . $this->postType . '_columns', 'customPostColumns');
         //~ $this->addAction('manage_posts_custom_column', 'custonPostRowValues');
@@ -147,28 +155,49 @@ Class BeastxPlugin {
         //~ }
     }
     
-    public function addCustomFavoriteOption() {
-        //~ function custom_favorite_menu($actions) {
-            //~ # Removing #
-            //~ unset($actions['edit-comments.php']);
-            //~ unset($actions['media-new.php']);
-            //~ # Adding #
-            //~ $actions['admin.php?your-plugin'] = array('Your Plugin', 'manage_options');
-            //~ return $actions;
-        //~ }
-        //~ add_filter('favorite_actions', 'custom_favorite_menu');
+    public function remoaveFavoriteOption($action) {
+        array_push($this->favoriteMenuActionsToRemove, $action);
     }
     
-    public function addDashboardWidget() {
-        //~ function your_dashboard_widget() {
-            //~ echo '<p>Fill this with HTML or PHP.</p>';
-        //~ };
-        //~ function add_your_dashboard_widget() {
-            //~ wp_add_dashboard_widget( 'your_dashboard_widget', __( 'Hello WordPress user!' ), 'your_dashboard_widget' );
-        //~ }
-        //~ add_action('wp_dashboard_setup', 'add_your_dashboard_widget' );
+    public function addFavoriteOption($action, $label, $levelCapability = 'read') {
+        array_push(
+            $this->favoriteMenuActionsToAdd,
+            array(
+                'action' => $action,
+                'label' => $label,
+                'levelCapability' => $levelCapability
+            )
+        );
     }
     
+    public function _addCustomFavoriteOption($actions) {
+        for ($i = 0; $i < count($this->favoriteMenuActionsToRemove); ++$i) {
+            unset($actions[$this->favoriteMenuActionsToRemove[$i]]);
+        }
+        for ($i = 0; $i < count($this->favoriteMenuActionsToAdd); ++$i) {
+            $action = $this->favoriteMenuActionsToAdd[$i];
+            $actions[$action['action']] = array($action['label'], $action['levelCapability']);
+        }
+        return $actions;
+    }
+    
+    public function addDashboardWidget($id, $title, $callBack) {
+        array_push(
+            $this->dashboardWidgets,
+            array(
+                'id' => $id,
+                'title' => $title,
+                'callBack' => $callBack
+            )
+        );
+    }
+    
+    public function _addDashboardWidget() {
+        for ($i = 0; $i < count($this->dashboardWidgets); ++$i) {
+            wp_add_dashboard_widget($this->dashboardWidgets[$i]['id'], $this->dashboardWidgets[$i]['title'], $this->dashboardWidgets[$i]['callBack']);
+        }
+    }
+
     
     /*****************************************************
     Assets methods (Scripts and Styles)
@@ -208,7 +237,6 @@ Class BeastxPlugin {
         );
     }
     
-    
     public function registerScript($id, $fileName, $loadOn = array(), $depends = array(), $version = false, $in_footer = false) {
         $realId = $this->pluginBaseName . '_' . $id . '_script';
         $realFileName = WP_PLUGIN_URL . '/assets/scripts/' . $fileName;
@@ -224,7 +252,7 @@ Class BeastxPlugin {
         $this->_registerScript('builtIn', $id, null, $loadOn, $depends, $version, $media);
     }
     
-    public function registerInlineStyle($code, $loadOn = array(), $in_footer = false) {
+    public function registerInlineScript($code, $loadOn = array(), $in_footer = false) {
         $this->_registerScript('inline', $code, null, $loadOn, array(), false, $in_footer);
     }
     
@@ -243,7 +271,7 @@ Class BeastxPlugin {
         );
     }
     
-    public function _printScript() {
+    public function _printScripts() {
         for ($i = 0; $i < count($this->scripts); ++$i) {
             $script = $this->scripts[$i];
             if (empty($script['loadOn'])) {
@@ -256,7 +284,7 @@ Class BeastxPlugin {
         }
     }
     
-    public function _printStyle() {
+    public function _printStyles() {
         for ($i = 0; $i < count($this->styles); ++$i) {
             $style = $this->styles[$i];
             if (empty($style['loadOn'])) {
@@ -283,7 +311,7 @@ Class BeastxPlugin {
     
     }
     
-    public function _addMenus($menuItems) {
+    public function _addMenuItems() {
         //~ add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function, $icon_url, $position );
         
         //~ add_submenu_page(
