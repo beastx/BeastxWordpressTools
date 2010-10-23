@@ -1,5 +1,7 @@
 <?
 
+ob_start();
+
 if (!defined('ABSPATH')) die("Aren't you supposed to come here via WP-Admin?");
 
 require_once 'thirdParty/firePHP/FirePHP.class.php';
