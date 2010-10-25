@@ -31,6 +31,11 @@ class BeastxFileSystemHelper {
         BeastxFileSystemHelper::_mkdirr($pathname, $mode);
     }
     
+    public function getPluginFolder() {
+        $baseName = plugin_basename(__FILE__);
+        return substr($baseName, 0, strpos($baseName, '/'));
+    }
+    
     private function _mkdir($pathname, $mode) {
         if (is_dir($pathname) || empty($pathname)) { return true; } // Check if directory already exists
         if (is_file($pathname)) { return false; } // Ensure a file does not already exist with the same name
