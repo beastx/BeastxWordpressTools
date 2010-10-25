@@ -33,10 +33,6 @@ Class BeastxCustomPostType extends BeastxPlugin {
     private $metaBoxes = array();
     private $vars = array();
 
-    public function __construct() {
-        parent::__construct();
-    }
-    
     public function registerPostType($postType, $postTypeArgs = null, $dontReflushRules = false) {
         $this->postType = strtolower($postType);
         $this->postTypeArgs = $postTypeArgs;
