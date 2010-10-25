@@ -32,9 +32,16 @@ Class BeastxPlugin {
     private $styles = array();
     private $scripts = array();
     private $dashboardWidgets = array();
+    private $contextualHelps = array();
+    private $pluginActionLinks = array();
+    private $pluginMetaLinks = array();
 
     public function __construct() {
-        $this->pluginBaseName = str_replace(' ', '-', $this->pluginName);
+        $this->pluginBaseName = BeastxFileSystemHelper::getPluginFolder();
+        $this->pluginBaseFileName = $this->pluginBaseName . '/' .$this->pluginBaseName . '.php';
+        $this->pluginBaseUrl = WP_PLUGIN_URL.'/'.$this->pluginBaseName;
+        $this->pluginBasePath = WP_PLUGIN_DIR.'/'.$this->pluginBaseName;
+        $this->assetsPath = $this->pluginBaseUrl . '/assets/';
         $this->addWordpressCommonFiltersAndActions();
     }
     
@@ -46,17 +53,17 @@ Class BeastxPlugin {
         $this->addAction('plugins_loaded', '_onPluginLoad');
         $this->addAction('save_post', '_onSavePost');
         $this->addFilter('the_content', '_onGetContent');
-        $this->addFilter('pre_get_posts', '_onGetPosts' );
+        $this->addFilter('pre_get_posts', '_onGetPosts');
         $this->addAction('admin_print_scripts', '_printScripts');
         $this->addAction('admin_print_styles', '_printStyles');
+        $this->addAction('wp_print_scripts', '_printScripts');
+        $this->addAction('wp_print_styles', '_printStyles');
         $this->addFilter('plugin_action_links_' . $this->pluginBaseFileName, '_addPluginActionLink');
         $this->addFilter('plugin_row_meta', '_addPluginMetaLink');
         $this->addAction('admin_menu', '_addMenuItems');
         $this->addFilter('favorite_actions', '_addCustomFavoriteOption');
         $this->addAction('wp_dashboard_setup', '_addDashboardWidget');
-        
-        //~ $this->addFilter('manage_edit-' . $this->postType . '_columns', 'customPostColumns');
-        //~ $this->addAction('manage_posts_custom_column', 'custonPostRowValues');
+        $this->addFilter('contextual_help','_addCustomHelp');
     }
     
     
@@ -64,9 +71,13 @@ Class BeastxPlugin {
     Plugin Links Helpers (links for plugin in plugins page)
     *****************************************************/
     
-    function _addPluginActionLink($links) {
-        if (method_exists($this, 'getPluginActionLinks')) {
-            $actionsLinks = $this->getPluginActionLinks();
+    public function registerPluginActionLink($label, $url) {
+        array_push($this->pluginActionLinks, array('label' => $label, 'url' => $url));
+    }
+    
+    public function _addPluginActionLink($links) {
+        if (count($this->pluginActionLinks) > 0) {
+            $actionsLinks = $this->pluginActionLinks;
             $newLinks = array();
             for ($i = 0; $i < count($actionsLinks); ++$i) {
                 $metaLink = '<a href="'. $actionsLinks[$i]['url'] .'">'. $actionsLinks[$i]['label'] .'</a>';
@@ -76,11 +87,15 @@ Class BeastxPlugin {
         } else {
             return $links;
         }
-    }  
+    }
     
-    function _addPluginMetaLink($links, $file) {
-        if (method_exists($this, 'getPluginMetaLinks')) {
-            $metaLinks = $this->getPluginMetaLinks();
+    public function registerPluginMetaLink($label, $url) {
+        array_push($this->pluginMetaLinks, array('label' => $label, 'url' => $url));
+    }
+    
+    public function _addPluginMetaLink($links, $file) {
+        if (count($this->pluginMetaLinks) > 0) {
+            $metaLinks = $this->pluginMetaLinks;
             if ($file == $this->pluginBaseFileName) {
                 for ($i = 0; $i < count($metaLinks); ++$i) {
                     $metaLink = ($i == 0 ? '<br>' : '') . '<a style="color: black; font-weight: bold;" href="'. $metaLinks[$i]['url'] .'">'. $metaLinks[$i]['label'] .'</a>';
@@ -98,14 +113,14 @@ Class BeastxPlugin {
     Events Handlers
     *****************************************************/
     
-    function _onInit() { if (method_exists($this, 'onInit')) { $this->onInit(); } }
-    function _onAdminInit() { if (method_exists($this, 'onAdminInit')) { $this->onAdminInit(); } }
-    function _onPluginLoad() { if (method_exists($this, 'onPluginLoad')) { $this->onPluginLoad(); } }
-    function _onPluginActivate() { if (method_exists($this, 'onPluginActivate')) { $this->onPluginActivate(); } }
-    function _onPluginDeactivate() { if (method_exists($this, 'onPluginDeactivate')) { $this->onPluginDeactivate(); } }
-    function _onSavePost() { if (method_exists($this, 'onSavePost')) { $this->onSavePost(); } }
-    function _onGetContent() { if (method_exists($this, 'onGetContent')) { $this->onGetContent(); } }
-    function _onGetPosts() { if (method_exists($this, 'onGetPosts')) { $this->onGetPosts(); } }
+    public function _onInit() { if (method_exists($this, 'onInit')) { $this->onInit(); } }
+    public function _onAdminInit() { if (method_exists($this, 'onAdminInit')) { $this->onAdminInit(); } }
+    public function _onPluginLoad() { if (method_exists($this, 'onPluginLoad')) { $this->onPluginLoad(); } }
+    public function _onPluginActivate() { if (method_exists($this, 'onPluginActivate')) { $this->onPluginActivate(); } }
+    public function _onPluginDeactivate() { if (method_exists($this, 'onPluginDeactivate')) { $this->onPluginDeactivate(); } }
+    public function _onSavePost() { if (method_exists($this, 'onSavePost')) { $this->onSavePost(); } }
+    public function _onGetContent() { if (method_exists($this, 'onGetContent')) { $this->onGetContent(); } }
+    public function _onGetPosts() { if (method_exists($this, 'onGetPosts')) { $this->onGetPosts(); } }
     
     
     /*****************************************************
@@ -123,13 +138,6 @@ Class BeastxPlugin {
     }
     
     
-    public function registerPostType($postType, $postTypeArgs, $dontReflushRules = false) {
-        register_post_type($postType, $postTypeArgs);
-        if (!$dontReflushRules) {
-            global $wp_rewrite;
-            $wp_rewrite->flush_rules();
-        }
-    }
     
     public function addMetaBox($id, $label, $callBack, $postType, $column= 'normal', $priority = 'normal') {
         add_meta_box($id, $label, $callBack, $postType, $column, $priority);
@@ -139,23 +147,38 @@ Class BeastxPlugin {
         
     }
     
-    public function addCustomHelp() {
-        //~ add_action('load-page-new.php','add_custom_help_page');
-        //~ add_action('load-page.php','add_custom_help_page');
-        //~ function add_custom_help_page() {
-            //~ //the contextual help filter
-            //~ add_filter('contextual_help','custom_page_help');
-        //~ }
-        //~ function custom_page_help($help) {
-            //~ //keep the existing help copy
-            //~ echo $help;
-            //~ //add some new copy
-            //~ echo "<h5>Custom Features</h5>";
-            //~ echo "<p>Content placed above the more divider will appear in column 1. Content placed below the divider will appear in column 2.</p>";
-        //~ }
+    public function registerCustomHelp($onEnviroment, $callBack, $hideDefaultHelp = false) {
+        array_push(
+            $this->contextualHelps,
+            array(
+                'onEnviroment' => $onEnviroment,
+                'callBack' => $callBack,
+                'hideDefaultHelp' => $hideDefaultHelp
+            )
+        );
     }
     
-    public function remoaveFavoriteOption($action) {
+    public function _addCustomHelp($defaultHelp) {
+        global $beastxEnviroment;
+        if (count($this->contextualHelps) > 0) {
+            global $pagenow;
+            for ($i = 0; $i < count($this->contextualHelps); ++$i) {
+                $help = $this->contextualHelps[$i];
+                if (empty($help['onEnviroment']) || $beastxEnviroment->check($help['onEnviroment'])) {
+                    if (!$help['hideDefaultHelp']) {
+                        echo $defaultHelp;
+                    }
+                    call_user_func($help['callBack']);
+                } else {
+                    echo $defaultHelp;
+                }
+            }
+        } else {
+            echo $defaultHelp;
+        }
+    }
+    
+    public function removeFavoriteOption($action) {
         array_push($this->favoriteMenuActionsToRemove, $action);
     }
     
@@ -181,7 +204,7 @@ Class BeastxPlugin {
         return $actions;
     }
     
-    public function addDashboardWidget($id, $title, $callBack) {
+    public function registerDashboardWidget($id, $title, $callBack) {
         array_push(
             $this->dashboardWidgets,
             array(
@@ -205,7 +228,7 @@ Class BeastxPlugin {
     
     public function registerStyle($id, $fileName, $loadOn = array(), $depends = array(), $version = false, $media = 'all') {
         $realId = $this->pluginBaseName . '_' . $id . '_style';
-        $realFileName = WP_PLUGIN_URL . '/assets/styles/' . $fileName;
+        $realFileName = $this->pluginBaseUrl . '/assets/styles/' . $fileName;
         $this->_registerStyle('plugin', $realId, $realFileName, $loadOn, $depends, $version, $media);
     }
     
@@ -239,7 +262,7 @@ Class BeastxPlugin {
     
     public function registerScript($id, $fileName, $loadOn = array(), $depends = array(), $version = false, $in_footer = false) {
         $realId = $this->pluginBaseName . '_' . $id . '_script';
-        $realFileName = WP_PLUGIN_URL . '/assets/scripts/' . $fileName;
+        $realFileName = $this->pluginBaseUrl . '/assets/scripts/' . $fileName;
         $this->_registerScript('plugin', $realId, $realFileName, $loadOn, $depends, $version, $media);
     }
     
@@ -272,9 +295,10 @@ Class BeastxPlugin {
     }
     
     public function _printScripts() {
+        global $beastxEnviroment;
         for ($i = 0; $i < count($this->scripts); ++$i) {
             $script = $this->scripts[$i];
-            if (empty($script['loadOn'])) {
+            if (count($script['loadOn']) == 0 || $beastxEnviroment->checkIs($script['loadOn'])) {
                 if ($script['type'] == 'inline') {
                     echo '<script type="text/javascript">' . $script['data'] . '</script>';
                 } else {
@@ -285,9 +309,10 @@ Class BeastxPlugin {
     }
     
     public function _printStyles() {
+        global $beastxEnviroment;
         for ($i = 0; $i < count($this->styles); ++$i) {
             $style = $this->styles[$i];
-            if (empty($style['loadOn'])) {
+            if (count($style['loadOn']) == 0 || $beastxEnviroment->checkIs($style['loadOn'])) {
                 if ($style['type'] == 'inline') {
                     echo '<style>' . $style['data'] . '</style>';
                 } else {
