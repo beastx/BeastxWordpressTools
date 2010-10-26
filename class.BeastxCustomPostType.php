@@ -109,7 +109,7 @@ Class BeastxCustomPostType extends BeastxPlugin {
         }
     }
     
-    public function onSavePost() {
+    public function onSavePost($id) {
         global $post;
         if (wp_is_post_revision($id) || wp_is_post_autosave($id)) {
             return;
