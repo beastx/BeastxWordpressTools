@@ -42,7 +42,48 @@ Class BeastxPlugin {
         $this->pluginBaseUrl = WP_PLUGIN_URL.'/'.$this->pluginBaseName;
         $this->pluginBasePath = WP_PLUGIN_DIR.'/'.$this->pluginBaseName;
         $this->assetsPath = $this->pluginBaseUrl . '/assets/';
+        $this->registerCoreBuiltInAssets();
         $this->addWordpressCommonFiltersAndActions();
+    }
+    
+    private function registerCoreBuiltInAssets() {
+        $coreScriptsFolder = $this->pluginBaseUrl . '/BeastxWordpressTools/assets/scripts/';
+        $coreStylesFolder = $this->pluginBaseUrl . '/BeastxWordpressTools/assets/styles/';
+        $coreThirdPartyFolder = $this->pluginBaseUrl . '/BeastxWordpressTools/assets/thirdParty/';
+        // TODO: Ver como hacer con lo de version por el cache
+        wp_register_script('Beastx', $coreScriptsFolder . 'Beastx.js');
+        wp_register_script('BeastxDOM', $coreScriptsFolder . 'DOM.js');
+        wp_register_script('BeastxFileAttacher', $coreScriptsFolder . 'FileAttacher.js');
+        wp_register_script('BeastxImages', $coreScriptsFolder . 'Images.js');
+        wp_register_script('BeastxJson', $coreScriptsFolder . 'Json.js');
+        wp_register_script('BeastxRowEditor', $coreScriptsFolder . 'RowEditor.js');
+        wp_register_script('BeastxRowEditorBaseItem', $coreScriptsFolder . 'RowEditorBaseItem.js');
+        wp_register_script('BeastxString', $coreScriptsFolder . 'String.js');
+        wp_register_script('BeastxVAR', $coreScriptsFolder . 'VAR.js');
+        wp_register_script('BeastxAjaxUploader', $coreThirdPartyFolder . 'AjaxUploader/ajaxupload.js');
+        wp_register_script('BeastxjQueryUI', $coreThirdPartyFolder . 'jQueryUI/jquery-ui.min.js');
+        wp_enqueue_style('BeastxjQueryUI', $coreThirdPartyFolder . 'jQueryUI/jquery-ui.css');
+    }
+    
+    public function addImageAttacherAssets($loadOn = array()) {
+        $this->registerBuiltInScript('BeastxImages', $loadOn);
+        $this->addFileAttacherAssets($loadOn);
+    }
+    
+    public function addFileAttacherAssets($loadOn = array()) {
+        $this->registerBuiltInScript('BeastxFileAttacher', $loadOn);
+        $this->registerBuiltInScript('BeastxJson', $loadOn);
+        $this->registerBuiltInScript('BeastxAjaxUploader', $loadOn);
+    }
+    
+    public function addRowEditorAssets($loadOn = array()) {
+        $this->registerBuiltInScript('BeastxRowEditorBaseItem', $loadOn);
+        $this->registerBuiltInScript('BeastxRowEditor', $loadOn);
+    }
+    
+    public function addRowJqueryUIAssets($loadOn = array()) {
+        $this->registerBuiltInStyle('BeastxjQueryUI', $loadOn);
+        $this->registerBuiltInScript('BeastxjQueryUI', $loadOn);
     }
     
     private function addWordpressCommonFiltersAndActions() {
@@ -118,9 +159,9 @@ Class BeastxPlugin {
     public function _onPluginLoad() { if (method_exists($this, 'onPluginLoad')) { $this->onPluginLoad(); } }
     public function _onPluginActivate() { if (method_exists($this, 'onPluginActivate')) { $this->onPluginActivate(); } }
     public function _onPluginDeactivate() { if (method_exists($this, 'onPluginDeactivate')) { $this->onPluginDeactivate(); } }
-    public function _onSavePost() { if (method_exists($this, 'onSavePost')) { $this->onSavePost(); } }
-    public function _onGetContent() { if (method_exists($this, 'onGetContent')) { $this->onGetContent(); } }
-    public function _onGetPosts() { if (method_exists($this, 'onGetPosts')) { $this->onGetPosts(); } }
+    public function _onSavePost($id) { if (method_exists($this, 'onSavePost')) { $this->onSavePost($id); } }
+    public function _onGetContent($content) { if (method_exists($this, 'onGetContent')) { $this->onGetContent($content); } }
+    public function _onGetPosts($query) { if (method_exists($this, 'onGetPosts')) { $this->onGetPosts($query); } }
     
     
     /*****************************************************
