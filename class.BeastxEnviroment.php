@@ -38,38 +38,38 @@ Class BeastxEnviroment {
     private $adminSections = array(
         'admin-ajax' => array('ajax', null),
         'index-extra.php' => array('ajax', 'dashboardwidget'),
-        'index.php' => array('dashboard', 'dashboard'),
-        'update-core.php' => array('dashboard', 'updated'),
-        'edit.php' => array('posts', 'posts'),
-        'post-new.php' => array('posts', 'addnew'),
-        'post.php' => array('posts', 'edit'),
-        'edit-tags.php' => array('posts', 'taxonomy'),
-        'upload.php' => array('media', 'library'),
-        'media-new.php' => array('media', 'addnew'),
-        'link-manager.php' => array('links', 'links'),
-        'link-add.php' => array('links', 'addnew'),
-        'edit-link-categories.php' => array('links', 'categories'),
-        'edit-comments.php' => array('comments', 'comments'),
-        'themes.php' => array('appearance', 'themes'),
-        'widgets.php' => array('appearance', 'widgets'),
-        'nav-menus.php' => array('appearance', 'menus'),
-        'theme-editor.php' => array('appearance', 'editor'),
-        'plugins.php' => array('plugins', 'plugins'),
-        'plugin-install.php' => array('plugins', 'addnew'),
-        'plugin-editor.php' => array('plugins', 'editor'),
-        'users.php' => array('users', 'users'),
-        'user-new.php' => array('users', 'addnew'),
-        'profile.php' => array('users', 'profile'),
-        'tools.php' => array('tools', 'tools'),
-        'import.php' => array('tools', 'import'),
-        'export.php' => array('tools', 'export'),
-        'options-general.php' => array('settings', 'general'),
-        'options-writing.php' => array('settings', 'writing'),
-        'options-reading.php' => array('settings', 'reading'),
-        'options-discussion.php' => array('settings', 'discussion'),
-        'options-media.php' => array('settings', 'media'),
-        'options-privacy.php' => array('settings', 'privacy'),
-        'options-permalink.php' => array('settings', 'permalink')
+        'index.php' => array('dashboard', 'dashboard', 'index.php'),
+        'update-core.php' => array('dashboard', 'updates', 'index.php'),
+        'edit.php' => array('posts', 'posts', 'edit.php'),
+        'post-new.php' => array('posts', 'addnew', 'edit.php'),
+        'post.php' => array('posts', 'edit', 'edit.php'),
+        'edit-tags.php' => array('posts', 'taxonomy', 'edit.php'),
+        'upload.php' => array('media', 'library', 'upload.php'),
+        'media-new.php' => array('media', 'addnew', 'upload.php'),
+        'link-manager.php' => array('links', 'links', 'link-manager.php'),
+        'link-add.php' => array('links', 'addnew', 'link-manager.php'),
+        'edit-link-categories.php' => array('links', 'categories', 'link-manager.php'),
+        'edit-comments.php' => array('comments', 'comments', 'edit-comments.php'),
+        'themes.php' => array('appearance', 'themes', 'themes.php'),
+        'widgets.php' => array('appearance', 'widgets', 'themes.php'),
+        'nav-menus.php' => array('appearance', 'menus', 'themes.php'),
+        'theme-editor.php' => array('appearance', 'editor', 'themes.php'),
+        'plugins.php' => array('plugins', 'plugins', 'plugins.php'),
+        'plugin-install.php' => array('plugins', 'addnew', 'plugins.php'),
+        'plugin-editor.php' => array('plugins', 'editor', 'plugins.php'),
+        'users.php' => array('users', 'users', 'users.php'),
+        'user-new.php' => array('users', 'addnew', 'users.php'),
+        'profile.php' => array('users', 'profile', 'users.php'),
+        'tools.php' => array('tools', 'tools', 'tools.php'),
+        'import.php' => array('tools', 'import', 'tools.php'),
+        'export.php' => array('tools', 'export', 'tools.php'),
+        'options-general.php' => array('settings', 'general', 'options-general.php'),
+        'options-writing.php' => array('settings', 'writing', 'options-general.php'),
+        'options-reading.php' => array('settings', 'reading', 'options-general.php'),
+        'options-discussion.php' => array('settings', 'discussion', 'options-general.php'),
+        'options-media.php' => array('settings', 'media', 'options-general.php'),
+        'options-privacy.php' => array('settings', 'privacy', 'options-general.php'),
+        'options-permalink.php' => array('settings', 'permalink', 'options-general.php')
     );
     private $actualEnviroment = array();
 
@@ -79,6 +79,21 @@ Class BeastxEnviroment {
         } else {
             add_filter('pre_get_posts', array(&$this, 'getPublicEnviroment'));
         }
+    }
+    
+    public function getMenuFile($menuSlug, $subMenuSlug = null) {
+        foreach ($this->adminSections as $file => $slugs) {
+            if ($menuSlug == $slugs[0]) {
+                if (empty($subMenuSlug) && $file == $slugs[2]) {
+                    return array('menuFile' => $file);
+                } else {
+                    if ($subMenuSlug == $slugs[1]) {
+                        return array('menuFile' => $slugs[2], 'subMenuFile' => $file);
+                    }
+                }
+            }
+        }
+        return null;
     }
         
         
