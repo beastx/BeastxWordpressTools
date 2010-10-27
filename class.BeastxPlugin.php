@@ -37,6 +37,8 @@ Class BeastxPlugin {
     private $pluginMetaLinks = array();
     private $topMenus = array();
     private $subMenus = array();
+    private $subMenuItemsToRemove = array();
+    private $menuItemsToRemove = array();
 
     public function __construct() {
         $this->pluginBaseName = BeastxFileSystemHelper::getPluginFolder();
@@ -103,7 +105,7 @@ Class BeastxPlugin {
         $this->addAction('wp_print_styles', '_printStyles');
         $this->addFilter('plugin_action_links_' . $this->pluginBaseFileName, '_addPluginActionLink');
         $this->addFilter('plugin_row_meta', '_addPluginMetaLink');
-        $this->addAction('admin_menu', '_addMenuItems');
+        $this->addAction('admin_menu', '_execMenuActions');
         $this->addFilter('favorite_actions', '_addCustomFavoriteOption');
         $this->addAction('wp_dashboard_setup', '_addDashboardWidget');
         $this->addFilter('contextual_help','_addCustomHelp');
@@ -399,7 +401,13 @@ Class BeastxPlugin {
         );
     }
     
-    public function _addMenuItems() {
+    public function _execMenuActions() {
+        $this->_removeMenuItem();
+        $this->_removeSubmenuItem();
+        $this->_addMenuItems();
+    }
+    
+    private function _addMenuItems() {
         for ($i = 0; $i < count($this->topMenus); ++$i) {
             $menuId = $this->topMenus[$i]['id'];
             add_menu_page(
@@ -429,48 +437,10 @@ Class BeastxPlugin {
             }
             
             for ($i = 0; $i < count($this->subMenus); ++$i) {
-                switch ($this->subMenus[$i]['parentSlug']) {
-                    case 'dashboard':
-                        $parent_slug = 'index.php';
-                        break;
-                    case 'posts':
-                        $parent_slug = 'edit.php';
-                        break;
-                    case 'media':
-                        $parent_slug = 'upload.php';
-                        break;
-                    case 'links':
-                        $parent_slug = 'link-manager.php';
-                        break;
-                    case 'pages':
-                        $parent_slug = 'edit.php?post_type=page';
-                        break;
-                    case 'comments':
-                        $parent_slug = 'edit-comments.php';
-                        break;
-                    case 'appearence':
-                        $parent_slug = 'themes.php';
-                        break;
-                    case 'plugins':
-                        $parent_slug = 'plugins.php';
-                        break;
-                    case 'users':
-                        $parent_slug = 'users.php';
-                        break;
-                    case 'tools':
-                        $parent_slug = 'tools.php';
-                        break;
-                    case 'settings':
-                        $parent_slug = 'options-general.php';
-                        break;
-                    default:
-                        $parent_slug = 'index.php';
-                        break;
-                }
-                
+                $parentMenuFiles = $this->getMenuFile($this->subMenus[$i]['parentSlug']);
                 $subMenuId = $this->subMenus[$i]['id'];
                 add_submenu_page(
-                    $parent_slug,
+                    $parentMenuFiles['menuFile'],
                     $this->subMenus[$i]['title'],
                     $this->subMenus[$i]['title'],
                     $this->subMenus[$i]['capability'],
@@ -481,24 +451,41 @@ Class BeastxPlugin {
         }
     }
     
-    public function removeSubmenuItem() {
-        //~ function remove_submenus() {
-            //~ global $submenu;
-            //~ unset($submenu['index.php'][10]); // Removes 'Updates'.
-            //~ unset($submenu['themes.php'][5]); // Removes 'Themes'.
-            //~ unset($submenu['options-general.php'][15]); // Removes 'Writing'.
-            //~ unset($submenu['options-general.php'][25]); // Removes 'Discussion'.
-        //~ }
-        //~ add_action('admin_menu', 'remove_submenus');
+    private function getMenuFile($menuSlug, $subMenuSlug = null) {
+        global $beastxEnviroment;
+        return $beastxEnviroment->getMenuFile($menuSlug, $subMenuSlug);
     }
     
-    public function removeMenuItem() {
-        //~ function remove_menu_items() {
-            //~ global $menu;
-            //~ unset($menu[15]); // Removes 'Links'.
-            //~ unset($menu[25]); // Removes 'Comments'.
-        //~ }
-        //~ add_action('admin_menu', 'remove_menu_items');
+    private function _removeSubmenuItem() {
+        global $submenu;
+        for ($i = 0; $i < count($this->subMenuItemsToRemove); ++$i) {
+            $parentMenuFiles = $this->getMenuFile($this->subMenuItemsToRemove[$i][0], $this->subMenuItemsToRemove[$i][1]);
+            foreach ($submenu[$parentMenuFiles['menuFile']] as $index => $menu) {
+                if ($menu[2] == $parentMenuFiles['subMenuFile']) {
+                    unset($submenu[$parentMenuFiles['menuFile']][$index]);
+                }
+            }
+        }
+    }
+    
+    private function _removeMenuItem() {
+        global $menu;
+        for ($i = 0; $i < count($this->menuItemsToRemove); ++$i) {
+            $parentMenuFiles = $this->getMenuFile($this->menuItemsToRemove[$i]);
+            for ($j = 0; $j < count($menu); ++$j) {
+                if (!empty($menu[$j]) && $menu[$j][2] == $parentMenuFiles['menuFile']) {
+                    unset($menu[$j]);
+                }
+            }
+        }
+    }
+    
+    public function removeMenuItem($menuSlug) {
+        array_push($this->menuItemsToRemove, $menuSlug);
+    }
+    
+    public function removeSubMenuItem($menuSlug, $subMenuSlug) {
+        array_push($this->subMenuItemsToRemove, array($menuSlug, $subMenuSlug));
     }
     
     
