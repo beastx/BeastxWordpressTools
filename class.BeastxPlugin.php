@@ -35,6 +35,8 @@ Class BeastxPlugin {
     private $contextualHelps = array();
     private $pluginActionLinks = array();
     private $pluginMetaLinks = array();
+    private $topMenus = array();
+    private $subMenus = array();
 
     public function __construct() {
         $this->pluginBaseName = BeastxFileSystemHelper::getPluginFolder();
@@ -369,45 +371,114 @@ Class BeastxPlugin {
     *****************************************************/
     
     
-    public function registerMenuItem($menuItem) {
-        //~ add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $function);
+    public function registerSubMenu($id, $parentSlug, $menuTitle, $pageTitle, $showPageCallback, $capability = 'manage_options') {
+        array_push(
+            $this->subMenus,
+            array(
+                'id' => $id,
+                'parentSlug' => $parentSlug,
+                'title' => $menuTitle,
+                'pageTitle' => $pageTitle,
+                'capability' => $capability,
+                'showPageCallback' => $showPageCallback
+            )
+        );
     }
     
-    public function registerMenu($menu) {
-    
+    public function registerMenu($id, $menuTitle, $subMenus = array(), $capability = 'manage_options', $icon_url = null, $position = null) {
+        array_push(
+            $this->topMenus,
+            array(
+                'id' => $id,
+                'title' => $menuTitle,
+                'subMenus' => $subMenus,
+                'capability' => $capability,
+                'icon_url' => $icon_url,
+                'position' => $position
+            )
+        );
     }
     
     public function _addMenuItems() {
-        //~ add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function, $icon_url, $position );
-        
-        //~ add_submenu_page(
-            //~ $this->pluginBaseFileName,
-            //~ $this->pluginName . ' - ' . $this->adminMenuOptions['subOptions'][0]['title'],
-            //~ $this->adminMenuOptions['subOptions'][0]['link'],
-            //~ 8,
-            //~ $this->pluginBaseFileName,
-            //~ array(&$this, 'get' . mb_convert_case($this->adminMenuOptions['subOptions'][0]['id'], MB_CASE_TITLE))
-        //~ );
-        //~ $this->adminPage = add_menu_page(
-            //~ $this->pluginName . ' - ' . $this->adminMenuOptions['title'],
-            //~ $this->adminMenuOptions['title'],
-            //~ 8,
-            //~ $this->pluginBaseFileName,
-            //~ array(&$this, 'get' . mb_convert_case($this->adminMenuOptions['subOptions'][0]['id'], MB_CASE_TITLE))
-        //~ );
-        
-        //~ if (count($this->adminMenuOptions['subOptions']) > 1) {
-            //~ for ($i = 1; $i < count($this->adminMenuOptions['subOptions']); ++$i) {
-                //~ add_submenu_page(
-                    //~ $this->pluginBaseFileName,
-                    //~ $this->pluginName . ' - ' . $this->adminMenuOptions['subOptions'][$i]['title'],
-                    //~ $this->adminMenuOptions['subOptions'][$i]['link'],
-                    //~ 8,
-                    //~ $this->pluginBaseName . '-' . $this->adminMenuOptions['subOptions'][$i]['id'],
-                    //~ array(&$this, 'get' . mb_convert_case($this->adminMenuOptions['subOptions'][$i]['id'], MB_CASE_TITLE))
-                //~ );
-            //~ }
-        //~ }
+        for ($i = 0; $i < count($this->topMenus); ++$i) {
+            $menuId = $this->topMenus[$i]['id'];
+            add_menu_page(
+                null,
+                $this->topMenus[$i]['title'],
+                $this->topMenus[$i]['capability'],
+                $menuId,
+                $this->topMenus[$i]['subMenus'][0]['callback']
+            );
+            add_submenu_page(
+                $menuId,
+                $this->topMenus[$i]['subMenus'][0]['title'],
+                $this->topMenus[$i]['subMenus'][0]['title'],
+                $this->topMenus[$i]['capability'],
+                $menuId
+            );
+            $subMenus = $this->topMenus[$i]['subMenus'];
+            for ($j = 1; $j < count($subMenus); ++$j) {
+                add_submenu_page(
+                    $menuId,
+                    $subMenus[$j]['title'],
+                    $subMenus[$j]['title'],
+                    $this->topMenus[$i]['capability'],
+                    $subMenus[$j]['id'],
+                    $subMenus[$j]['callback']
+                );
+            }
+            
+            for ($i = 0; $i < count($this->subMenus); ++$i) {
+                switch ($this->subMenus[$i]['parentSlug']) {
+                    case 'dashboard':
+                        $parent_slug = 'index.php';
+                        break;
+                    case 'posts':
+                        $parent_slug = 'edit.php';
+                        break;
+                    case 'media':
+                        $parent_slug = 'upload.php';
+                        break;
+                    case 'links':
+                        $parent_slug = 'link-manager.php';
+                        break;
+                    case 'pages':
+                        $parent_slug = 'edit.php?post_type=page';
+                        break;
+                    case 'comments':
+                        $parent_slug = 'edit-comments.php';
+                        break;
+                    case 'appearence':
+                        $parent_slug = 'themes.php';
+                        break;
+                    case 'plugins':
+                        $parent_slug = 'plugins.php';
+                        break;
+                    case 'users':
+                        $parent_slug = 'users.php';
+                        break;
+                    case 'tools':
+                        $parent_slug = 'tools.php';
+                        break;
+                    case 'settings':
+                        $parent_slug = 'options-general.php';
+                        break;
+                    default:
+                        $parent_slug = 'index.php';
+                        break;
+                }
+                
+                $subMenuId = $this->subMenus[$i]['id'];
+                add_submenu_page(
+                    $parent_slug,
+                    $this->subMenus[$i]['title'],
+                    $this->subMenus[$i]['title'],
+                    $this->subMenus[$i]['capability'],
+                    $subMenuId,
+                    $this->subMenus[$i]['showPageCallback']
+                );
+            }
+        }
     }
     
     public function removeSubmenuItem() {
