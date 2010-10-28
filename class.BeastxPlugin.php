@@ -46,11 +46,9 @@ Class BeastxPlugin {
         $this->pluginBaseUrl = WP_PLUGIN_URL.'/'.$this->pluginBaseName;
         $this->pluginBasePath = WP_PLUGIN_DIR.'/'.$this->pluginBaseName;
         $this->assetsPath = $this->pluginBaseUrl . '/assets/';
-        $this->registerCoreBuiltInAssets();
-        $this->addWordpressCommonFiltersAndActions();
     }
     
-    private function registerCoreBuiltInAssets() {
+    public function registerCoreBuiltInAssets() {
         $coreScriptsFolder = $this->pluginBaseUrl . '/BeastxWordpressTools/assets/scripts/';
         $coreStylesFolder = $this->pluginBaseUrl . '/BeastxWordpressTools/assets/styles/';
         $coreThirdPartyFolder = $this->pluginBaseUrl . '/BeastxWordpressTools/assets/thirdParty/';
@@ -90,7 +88,7 @@ Class BeastxPlugin {
         $this->registerBuiltInScript('BeastxjQueryUI', $loadOn);
     }
     
-    private function addWordpressCommonFiltersAndActions() {
+    public function addWordpressCommonFiltersAndActions() {
         register_activation_hook($this->pluginBaseFileName, array($this, '_onPluginActivate'));
         register_deactivation_hook($this->pluginBaseFileName, array($this, '_onPluginDeactivate'));
         $this->addAction('init', '_onInit');
@@ -487,21 +485,6 @@ Class BeastxPlugin {
     public function removeSubMenuItem($menuSlug, $subMenuSlug) {
         array_push($this->subMenuItemsToRemove, array($menuSlug, $subMenuSlug));
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    public function uninstall() {
-        
-    }
-    
-    
-    
-    
     
 }
 
