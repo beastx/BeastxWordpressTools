@@ -410,7 +410,7 @@ Class BeastxPlugin {
     
     private function _addMenuItems() {
         for ($i = 0; $i < count($this->topMenus); ++$i) {
-            $menuId = $this->topMenus[$i]['id'];
+            $menuId = $this->pluginBaseName . '_Menu_' .  $this->topMenus[$i]['id'];
             add_menu_page(
                 null,
                 $this->topMenus[$i]['title'],
@@ -439,7 +439,7 @@ Class BeastxPlugin {
             
             for ($i = 0; $i < count($this->subMenus); ++$i) {
                 $parentMenuFiles = $this->getMenuFile($this->subMenus[$i]['parentSlug']);
-                $subMenuId = $this->subMenus[$i]['id'];
+                $subMenuId = $this->pluginBaseName . '_SubMenu_' .  $this->subMenus[$i]['id'];
                 add_submenu_page(
                     $parentMenuFiles['menuFile'],
                     $this->subMenus[$i]['title'],
