@@ -25,6 +25,8 @@ Author URI: http://www.beastxblog.com/
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+if (!class_exists('BeastxPlugin')) {
+
 Class BeastxPlugin {
 
     private $favoriteMenuActionsToAdd = array();
@@ -46,6 +48,7 @@ Class BeastxPlugin {
         $this->pluginBaseUrl = WP_PLUGIN_URL.'/'.$this->pluginBaseName;
         $this->pluginBasePath = WP_PLUGIN_DIR.'/'.$this->pluginBaseName;
         $this->assetsPath = $this->pluginBaseUrl . '/assets/';
+        $this->textDomain = $this->pluginBaseName;
     }
     
     public function registerCoreBuiltInAssets() {
@@ -306,12 +309,12 @@ Class BeastxPlugin {
     public function registerScript($id, $fileName, $loadOn = array(), $depends = array(), $version = false, $in_footer = false) {
         $realId = $this->pluginBaseName . '_' . $id . '_script';
         $realFileName = $this->pluginBaseUrl . '/assets/scripts/' . $fileName;
-        $this->_registerScript('plugin', $realId, $realFileName, $loadOn, $depends, $version, $media);
+        $this->_registerScript('plugin', $realId, $realFileName, $loadOn, $depends, $version, $in_footer);
     }
     
     public function registerExternalScript($id, $fileName, $loadOn = array(), $depends = array(), $version = false, $in_footer = false) {
         $realId = $this->pluginBaseName . '_' . $id . '_script';
-        $this->_registerScript('external', $realId, $fileName, $loadOn, $depends, $version, $media);
+        $this->_registerScript('external', $realId, $fileName, $loadOn, $depends, $version, $in_footer);
     }
     
     public function registerBuiltInScript($id, $loadOn = array(), $depends = array(), $version = false, $in_footer = false) {
@@ -486,6 +489,8 @@ Class BeastxPlugin {
         array_push($this->subMenuItemsToRemove, array($menuSlug, $subMenuSlug));
     }
     
+}
+
 }
 
 
