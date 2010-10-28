@@ -318,7 +318,7 @@ Class BeastxPlugin {
     }
     
     public function registerBuiltInScript($id, $loadOn = array(), $depends = array(), $version = false, $in_footer = false) {
-        $this->_registerScript('builtIn', $id, null, $loadOn, $depends, $version, $media);
+        $this->_registerScript('builtIn', $id, null, $loadOn, $depends, $version, $in_footer);
     }
     
     public function registerInlineScript($code, $loadOn = array(), $in_footer = false) {
