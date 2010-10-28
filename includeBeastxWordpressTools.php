@@ -14,9 +14,11 @@ require_once 'class.BeastxPlugin.php';
 require_once 'class.BeastxAdminPage.php';
 require_once 'class.BeastxCustomPostType.php';
 
-function debug($var, $title = null) {
-    $firephp = FirePHP::getInstance(true);
-    $firephp->log($var, $title);
+if (!function_exists('debug')) {
+    function debug($var, $title = null) {
+        $firephp = FirePHP::getInstance(true);
+        $firephp->log($var, $title);
+    }
 }
 
 if (defined(BEASTXDEBUG) && BEASTXDEBUG) {
