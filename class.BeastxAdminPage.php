@@ -27,13 +27,11 @@ Author URI: http://www.beastxblog.com/
 
 if (!defined('ABSPATH')) die("Aren't you supposed to come here via WP-Admin?");
 
-Class BeastxAdminPage {
+Class BeastxAdminPage extends BeastxPlugin {
     
-    public function __construct($plugin) {
-        $this->plugin = $plugin;
-        $this->textDomain = $plugin->textDomain;
-        $this->templatePath = $this->plugin->pluginBasePath . '/templates/';
-        
+    public function __construct() {
+        parent::__construct();
+        $this->templatePath = $this->pluginBasePath . '/templates/';
         if (method_exists($this, 'saveFormAction') || method_exists($this, 'resetFormAction')) {
             $this->captureFormsActions();
         }
@@ -57,7 +55,7 @@ Class BeastxAdminPage {
     public function printHeader() {
         echo '<div class="wrap BeastxAdminPage" id="BeastxAdminPageContainer">
         <div class="icon32" id="' . (!empty($this->iconClass) ? $this->iconClass : 'icon-plugins') . '"><br/></div>
-        <h2>' . $this->plugin->pluginName . ' - ' . (!empty($this->pageTitle) ? $this->pageTitle : __('Admin Page')) . '</h2>
+        <h2>' . $this->pluginName . ' - ' . (!empty($this->pageTitle) ? $this->pageTitle : __('Admin Page')) . '</h2>
         </div>';
     }
     
@@ -75,7 +73,7 @@ Class BeastxAdminPage {
     
     function checkSecurity() {
         if (!current_user_can('manage_options')) {
-            die(__('You cannot edit the ' . $this->plugin->pluginName . ' settings.'));
+            die(__('You cannot edit the ' . $this->pluginName . ' settings.'));
         }
         check_admin_referer('beastxPlugin-settings');
     }
@@ -120,21 +118,9 @@ Class BeastxAdminPage {
         return $returnValue;
     }
     
-    public function getTemplate($templateName, $vars = null) {
-        if (empty($vars)) {
-            $vars = array();
-        } else if (!is_array($vars)) {
-            $vars = array($vars);
-        }
+    public function getTemplate($templateName) {
         $fileName = $this->templatePath . '/' . $templateName . '.php';
         ob_start();
-        extract($vars);
-        //~ $pluginName = $this->pluginName;
-        //~ $pluginBaseName = $this->pluginBaseName;
-        //~ $pluginVersion = $this->pluginVersion;
-        //~ $pluginUrl = $this->pluginUrl;
-        //~ $pluginAuthor = $this->pluginAuthor;
-        //~ $pluginAuthorUrl = $this->pluginAuthorUrl;
         include($fileName);
         $template = ob_get_contents();
         ob_end_clean();
