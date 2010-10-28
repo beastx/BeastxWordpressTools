@@ -1,5 +1,7 @@
 <?
 
+if (!class_exists('BeastxOptionsManager')) {
+
 class BeastxOptionsManager {
 
     private $pluginName;
@@ -117,6 +119,8 @@ class BeastxOptionsManager {
     private function executeCutomGetter($optionName) {
         return call_user_func($this->options[$optionName]['customGetter']);
     }
+}
+
 }
 
 ?>

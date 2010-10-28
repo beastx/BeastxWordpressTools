@@ -1,5 +1,7 @@
 <?
 
+if (!class_exists('BeastxFileSystemHelper')) {
+
 class BeastxFileSystemHelper {
 
     public function getFileContent($fileName) {
@@ -48,6 +50,7 @@ class BeastxFileSystemHelper {
         }
         return false;
     }
+}
 
 }
 

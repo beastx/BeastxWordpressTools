@@ -25,6 +25,8 @@ Author URI: http://www.beastxblog.com/
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+if (!class_exists('BeastxCustomPostType')) {
+
 Class BeastxCustomPostType extends BeastxPlugin {
     
     private $postType = null;
@@ -155,6 +157,8 @@ Class BeastxCustomPostType extends BeastxPlugin {
             }
         }
     }
+
+}
 
 }
 

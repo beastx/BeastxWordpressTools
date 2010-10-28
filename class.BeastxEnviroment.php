@@ -32,6 +32,8 @@ Author URI: http://www.beastxblog.com/
         //~     - section: deshboard|posts(post, pages, custom)|media|comments|appearance|plugins|users|tools|settings|custom (only in enviroment: admin)
         //~     - subsection: pageName into the section (only in enviroment: admin)
         
+        
+if (!class_exists('BeastxEnviroment')) {
 
 Class BeastxEnviroment {
 
@@ -187,7 +189,8 @@ Class BeastxEnviroment {
             return false;
         }
     }
-    
+}
+
 }
 
 $beastxEnviroment = new BeastxEnviroment();
